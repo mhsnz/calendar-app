@@ -3,13 +3,21 @@
   import Navbar from '$lib/components/Navbar.svelte';
   import Calendar from '$lib/components/Calendar.svelte';
   import AddEventModal from '$lib/components/AddEventModal.svelte';
-  import { darkMode } from '$lib/stores';
   
-  let viewMode: 'daily' | 'weekly' | 'monthly' = 'daily';
-  let showAddModal = false;
-  let currentDate = new Date().toISOString().slice(0, 10);
+  // State with proper Svelte 5 syntax
+  let viewMode = $state('daily');
+  let showAddModal = $state(false);
+  let currentDate = $state(new Date().toISOString().slice(0, 10));
+  let isDarkMode = $state(false);
   
-  function handleViewChange(mode: 'daily' | 'weekly' | 'monthly') {
+  // Effect for saving view mode
+  $effect(() => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('viewMode', viewMode);
+    }
+  });
+  
+  function handleViewChange(mode) {
     viewMode = mode;
   }
   
@@ -21,25 +29,22 @@
     showAddModal = false;
   }
   
+  function toggleDarkMode() {
+    isDarkMode = !isDarkMode;
+    document.documentElement.classList.toggle('dark', isDarkMode);
+  }
+  
   onMount(() => {
     // Check local storage for saved view mode preference
     const savedViewMode = localStorage.getItem('viewMode');
-    if (savedViewMode) {
-      viewMode = savedViewMode as 'daily' | 'weekly' | 'monthly';
+    if (savedViewMode && ['daily', 'weekly', 'monthly'].includes(savedViewMode)) {
+      viewMode = savedViewMode;
     }
     
-    // Initialize dark mode from system preference if not set already
-    if (typeof $darkMode === 'undefined') {
-      $darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    }
+    // Initialize dark mode from system preference
+    isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.classList.toggle('dark', isDarkMode);
   });
-  
-  // Save view mode preference whenever it changes
-  $: {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('viewMode', viewMode);
-    }
-  }
 </script>
 
 <svelte:head>
@@ -47,15 +52,22 @@
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors duration-200">
-  <Navbar {viewMode} onViewChange={handleViewChange} onAddClick={openAddModal} />
+  <Navbar 
+    viewMode={viewMode} 
+    onViewChange={handleViewChange} 
+    onAddClick={openAddModal}
+    isDarkMode={isDarkMode}
+    onToggleDarkMode={toggleDarkMode} 
+  />
   
   <main class="flex-1 container mx-auto p-4 md:p-6">
-    <Calendar {viewMode} />
+    <Calendar viewMode={viewMode} />
   </main>
   
-  <AddEventModal 
-    showModal={showAddModal} 
-    {currentDate}
-    on:close={closeAddModal}
-  />
+  {#if showAddModal}
+    <AddEventModal 
+      currentDate={currentDate}
+      onClose={() => closeAddModal()}
+    />
+  {/if}
 </div>

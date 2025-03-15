@@ -2,11 +2,13 @@
   import { tasks, events, completedTasks, completedEvents, deletedTasks, deletedEvents, darkMode } from '$lib/stores';
   import type { Item } from '$lib/types';
   
-  export let item: Item;
-  export let type: 'task' | 'event';
+  const { item, type } = $props<{
+    item: Item;
+    type: 'task' | 'event';
+  }>();
   
-  let showMenu = false;
-  let showDetails = false;
+  let showMenu = $state(false);
+  let showDetails = $state(false);
   
   function formatTime(timeString: string | undefined): string {
     if (!timeString) return '';

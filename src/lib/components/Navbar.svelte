@@ -1,9 +1,17 @@
 <script lang="ts">
   import { darkMode } from '$lib/stores';
   
-  export let viewMode: 'daily' | 'weekly' | 'monthly' = 'daily';
-  export let onAddClick: () => void;
-  export let onViewChange: (mode: 'daily' | 'weekly' | 'monthly') => void;
+  type ViewMode = 'daily' | 'weekly' | 'monthly';
+  
+  const { 
+    viewMode = 'daily', 
+    onAddClick, 
+    onViewChange 
+  } = $props<{
+    viewMode?: ViewMode;
+    onAddClick: () => void;
+    onViewChange: (mode: ViewMode) => void;
+  }>();
   
   function toggleDarkMode() {
     $darkMode = !$darkMode;

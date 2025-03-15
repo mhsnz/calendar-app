@@ -1,25 +1,20 @@
 <script lang="ts">
   import { tasks, events } from '$lib/stores';
   import type { CalendarItem, TaskEventType } from '$lib/types';
-  import { createEventDispatcher } from 'svelte';
 
-  export let showModal = false;
-  export let currentDate = new Date().toISOString().slice(0, 10);
-
-  const dispatch = createEventDispatcher();
+  const { currentDate = new Date().toISOString().slice(0, 10), onClose } = $props();
   
-  // Form state variables
-  let itemType: TaskEventType = 'event';
-  let itemTitle = '';
-  let itemDescription = '';
-  let startDate = currentDate;
-  let startTime = '09:00';
-  let endDate = currentDate;
-  let endTime = '10:00';
-  let itemColor = '#4f46e5';
-  let itemEmails: string[] = [];
-  let emailInput = '';
-  
+  // Form state variables with Svelte 5 syntax
+  let itemType = $state<TaskEventType>('event');
+  let itemTitle = $state('');
+  let itemDescription = $state('');
+  let startDate = $state(currentDate);
+  let startTime = $state('09:00');
+  let endDate = $state(currentDate);
+  let endTime = $state('10:00');
+  let itemColor = $state('#4f46e5');
+  let itemEmails = $state<string[]>([]);
+  let emailInput = $state('');
   
   const colorOptions = [
     { color: '#4f46e5', name: 'Indigo' },
@@ -34,9 +29,8 @@
   
   // Close the modal and reset form
   function closeModal() {
-    showModal = false;
-    dispatch('close');
     resetForm();
+    if (onClose) onClose();
   }
   
   // Reset the form to default values
@@ -100,15 +94,12 @@
   }
   
   // Update dates when currentDate prop changes
-  $: {
-    if (currentDate) {
-      startDate = currentDate;
-      endDate = currentDate;
-    }
-  }
+  $effect(() => {
+    startDate = currentDate;
+    endDate = currentDate;
+  });
 </script>
 
-{#if showModal}
 <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-auto overflow-hidden">
     <!-- Header -->
@@ -295,4 +286,3 @@
     </div>
   </div>
 </div>
-{/if}
